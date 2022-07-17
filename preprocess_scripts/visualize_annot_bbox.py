@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import cv2 
 
-dict_file="/bigdata/digbose92/Emotic/pkl_files/val_data.pkl"
+dict_file="/bigdata/digbose92/Emotic/pkl_files/train_data.pkl"
 
 with open(dict_file,"rb") as f:
     dict_tot=pickle.load(f)
@@ -25,7 +25,9 @@ with open(dict_file,"rb") as f:
 #/bigdata/digbose92/Emotic/emodb_small/images/6c41yc6yhfsg2uvzzs.jpg
 #/bigdata/digbose92/Emotic/emodb_small/images/1wg1b1ylo6a63gka4a.jpg
 #/bigdata/digbose92/Emotic/emodb_small/images/7vhai5b4p5hn13n3wu.jpg
-key_sample="COCO_train2014_000000327702.jpg"
+#/bigdata/digbose92/Emotic/framesdb/images/frame_m5dt7e8izrf9b5e9.jpg
+key_sample="COCO_train2014_000000160823.jpg"
+#"COCO_train2014_000000327702.jpg"
 #key_sample="5icy856i7iqgnn14cp.jpg""
 #"COCO_train2014_000000057579.jpg"
 #"COCO_train2014_000000530610.jpg"
@@ -61,7 +63,7 @@ for key in list(dict_set.keys()):
             disc_emotion_str=" ".join(disc_emotion_list)
             image=cv2.putText(image, disc_emotion_str, (bbox[0]-10, bbox[1]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
     
-cv2.imwrite('samples/'+key_sample,image)
+cv2.imwrite(key_sample,image)
 #print(disc_emotion)
 # print(dict_set['person_0']['bbox'])
 # print(c)
