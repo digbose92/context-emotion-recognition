@@ -28,8 +28,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_total=torch.load(model_file)
 model_state_dict=model_total.module.state_dict()
 
-
-
 #declare vit model here 
 feature_extractor = ViTFeatureExtractor.from_pretrained("google/vit-base-patch16-224-in21k") #doesn't matter if its pretrained :)
 num_classes=365
@@ -64,46 +62,66 @@ _val_transforms = Compose(
     )
 
 #test feature value on one of the images
-image_file="/bigdata/digbose92/Emotic/ade20k/images/labelme_vjsynrlwrnjrcbw.jpg"
-#"/bigdata/digbose92/Emotic/ade20k/images/sun_arvnlcpefglcupxc.jpg"
-#"/bigdata/digbose92/Emotic/ade20k/images/sun_aromcwcbssvytzjr.jpg"
-img=Image.open(image_file).convert('RGB')
-img=_val_transforms(img)
-img=img.unsqueeze(0)
-img=img.to(device)
+#image_file="/bigdata/digbose92/Emotic/ade20k/images/labelme_vjsynrlwrnjrcbw.jpg"
 
-print(model.vit.layernorm)
-h1=model.vit.layernorm.register_forward_hook(getActivation('feats'))
-#print(activation)
+csv_file="/bigdata/digbose92/Emotic/captions/caption_results_framesdb_emodb_small_mscoco_ade20k.csv"
+csv_data=pd.read_csv(csv_file)
+image_filename_list=list(csv_data['image_id'])
+dest_folder="/bigdata/digbose92/Emotic/vit_scene_features/"
 
-val=model(img)
-print(activation['feats'].size())
-log_softmax=nn.LogSoftmax(dim=-1)
-values=log_softmax(val.logits).to('cpu')
-y_pred=torch.max(values, 1)[1].numpy()[0]
+feat_dict=dict()
+#cnt=0
+for image_file in tqdm(image_filename_list):
 
-with open('/data/digbose92/codes/Emotic_experiments/vit-experiments/scripts/places365.txt', 'r') as f:
-    labels = [line.rstrip('\n') for line in f]
-
-label_dict=dict()
-for l in labels:
-    label_list=l.split(" ")
-    label_dict[label_list[1]]=label_list[0]
-
-print('Predicted label:%s' %(label_dict[str(y_pred)]))
-
-# for name, m in model.named_modules():
-#     print(name, m)
-    #print(label_list)
+    img_key=image_file.split("/")[-1].split(".")[0]
+    img=Image.open(image_file).convert('RGB')
+    img=_val_transforms(img)
+    img=img.unsqueeze(0)
+    img=img.to(device)
     
-    #print(labels[0])
-    # label_list=labels.split(" ")
-    # print(label_list)
-# #print(y_pred)
-# print(model.module)
 
-# model.vit.layernorm.register_forward_hook(getActivation('feats'))
-# print(activation)
+    h1=model.vit.layernorm.register_forward_hook(getActivation('feats'))
+    #print(activation)
+    with torch.no_grad():
+        val=model(img)
+        layer_norm_data=activation['feats'].squeeze(0).cpu().numpy() #[1,197,768]
+
+    feat_dict[img_key]=layer_norm_data
+    
+    
+with open(os.path.join(dest_folder,"vit_scene_feature_layer_norm.pkl"),"wb") as f:
+        pickle.dump(feat_dict,f)
+
+
+
+
+    #     log_softmax=nn.LogSoftmax(dim=-1)
+    #     values=log_softmax(val.logits).to('cpu')
+    #     y_pred=torch.max(values, 1)[1].numpy()[0]
+
+    # with open('/data/digbose92/codes/Emotic_experiments/vit-experiments/scripts/places365.txt', 'r') as f:
+    #     labels = [line.rstrip('\n') for line in f]
+
+    # label_dict=dict()
+    # for l in labels:
+    #     label_list=l.split(" ")
+    #     label_dict[label_list[1]]=label_list[0]
+
+    # print('Predicted label:%s' %(label_dict[str(y_pred)]))
+
+
+
+    # # for name, m in model.named_modules():
+    # #     print(name, m)
+    #     #print(label_list)
+        
+    #     #print(labels[0])
+    #     # label_list=labels.split(" ")
+    #     # print(label_list)
+    # # #print(y_pred)
+    # # print(model.module)
+    # # model.vit.layernorm.register_forward_hook(getActivation('feats'))
+    # # print(activation)
 
 
 
