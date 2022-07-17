@@ -4,9 +4,11 @@ import torch
 import torch.nn as nn 
 import torchvision
 from MCAN_model import *
+from mcan_config import *
 
 class Adapter_model(nn.Module):
     def __init__(self,in_dim,mid_dim):
+        super(Adapter_model, self).__init__()
 
         self.in_dim=in_dim 
         self.mid_dim=mid_dim 
@@ -35,6 +37,8 @@ class text_scene_comb_person_model(nn.Module):
                     fusion_option='concat',
                     num_classes=26
                     ):
+
+        super(text_scene_comb_person_model, self).__init__()
 
         self.in_feat_dim=in_feat_dim
         self.mid_feat_dim=mid_feat_dim
@@ -68,6 +72,18 @@ class text_scene_comb_person_model(nn.Module):
 
         return(logits)
 
+mcan_config_c=Cfgs()
+model_dict={
+        'mcan_config': mcan_config_c,
+        'in_feat_dim':2048,
+        'mid_feat_dim':512,
+        'scene_feat_dim':768,
+        'num_adapter_layers':2,
+        'fusion_option':'concat',
+        'num_classes':26
+}
+text_scene_combined_person_model=text_scene_comb_person_model(**model_dict)
+print(text_scene_combined_person_model)
 
 
 
